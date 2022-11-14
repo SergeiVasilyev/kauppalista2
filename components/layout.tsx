@@ -4,9 +4,9 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 
-function Layout2 ({ children }: {children: ReactNode}) {
-    return <div></div>
-}
+// function Layout2 ({ children }: {children: ReactNode}) {
+//     return <div></div>
+// }
 
 
 const Layout: FC<{children: ReactNode}> = ({ children }) => {
@@ -39,3 +39,4 @@ const Layout: FC<{children: ReactNode}> = ({ children }) => {
     </>
     )
 }
+export default Layout
