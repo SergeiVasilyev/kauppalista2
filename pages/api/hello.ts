@@ -10,14 +10,12 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const query = req.query;
+    const {query} = req;
 
     const db = await open({
         filename: 'database.db',
         driver: sqlite3.Database,
     });
-
-    // await db.exec('DROP TABLE IF EXISTS testi');
 
     await db.exec(`
     CREATE TABLE IF NOT EXISTS testi (
