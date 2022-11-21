@@ -12,6 +12,13 @@ export type ShopList = {
     createdAt: Date;
 }
 
+export type ShopListItem = {
+    listId: number;
+    sequence: number;
+    text: string;
+    done: boolean;
+}
+
 export async function getDatabase() {
     const db: sqlite.Database = await sqlite.open({
         filename: 'database.db',
@@ -22,7 +29,7 @@ export async function getDatabase() {
     CREATE TABLE IF NOT EXISTS shoplist (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(100) NOT NULL,
-        created_at DATETIME 
+        created_at DATETIME NOT NULL
     )`);
     await db.exec(`
     CREATE TABLE IF NOT EXISTS shoplist_item (
@@ -65,6 +72,15 @@ export class Database {
             name: row.name, 
             createdAt: new Date(row.created_at + 'Z')}))
     }
+    async getListItems(listId: number): Promise<ShopListItem[]> {
+        const rows = await this.db.all(`SELECT * FROM shoplist_item WHERE list_id=?`, listId)
+        return rows.map((row) => ({
+            listId: row.list_id,
+            sequence: row.sequence,
+            text: row.item,
+            done: row.done ? true : false,
+        }))
+    }
 }
 
 
@@ -79,6 +95,9 @@ async function main() {
     console.log(await db.getShopLists())
     const listat = await db.getShopLists()
     console.log(`${listat[0].createdAt}`)
+
+    const ekanListanIteemit = await db.getListItems(listat[0].id)
+    console.log(ekanListanIteemit)
 }
 
 main()
