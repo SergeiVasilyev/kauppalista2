@@ -1,25 +1,10 @@
 #!/usr/bin/env -S npx ts-node --project node.tsconfig.json
 
-//ja chmod +x utils/db.ts
-
-import { exec } from 'child_process';
 import * as sqlite from 'sqlite';
 import sqlite3 from 'sqlite3';
+import {ShopList, ShopListItem} from './types';
 
-export type ShopList = {
-    id: number;
-    name: string;
-    createdAt: Date;
-}
-
-export type ShopListItem = {
-    listId: number;
-    sequence: number;
-    text: string;
-    done: boolean;
-}
-
-export async function getDatabase() {
+export async function getDatabase(): Promise<Database> {
     const db: sqlite.Database = await sqlite.open({
         filename: 'database.db',
         driver: sqlite3.Database,
@@ -43,7 +28,6 @@ export async function getDatabase() {
     return new Database(db);
 }
 
-
 export class Database {
     db: sqlite.Database;
 
@@ -52,52 +36,78 @@ export class Database {
     }
 
     async createShopList(name: string): Promise<number> {
-        const result = await this.db.run(`INSERT INTO shoplist (name, created_at) VALUES (?, datetime('now'))`, name);
-        return result.lastID! // ! Почитать, что значит 
-        //const result = await db.all('SELECT * FROM testi');
+        const result = await this.db.run(
+            `INSERT INTO shoplist (name, created_at)
+             VALUES (?, datetime('now'))`,
+            name
+        );
+        return result.lastID!;
     }
-    async addItemToList(listId: number, item: string) {
-        const result = await this.db.get(`SELECT MAX(sequence) AS maxSeq FROM shoplist_item 
-        WHERE list_id = ?`, listId)
-        console.log(result)
-        const maxSeq = result.maxSeq ?? 0
 
-        this.db.run(`INSERT INTO shoplist_item (list_id, sequence, item) 
-        VALUES (?, ?, ?)`, listId, maxSeq + 1, item)
+    async addItemToList(listId: number, item: string): Promise<void> {
+        const result = await this.db.get(
+            `SELECT MAX(sequence) AS maxSeq FROM shoplist_item
+             WHERE list_id = ?`,
+            listId
+        );
+        console.log(result);
+        const maxSeq: number = result.maxSeq ?? 0;
+
+        this.db.run(
+            `INSERT INTO shoplist_item (list_id, sequence, item)
+             VALUES (?, ?, ?)`,
+            listId,
+            maxSeq + 1,
+            item
+        );
     }
-    async getShopLists(): Promise<ShopList[]>{
-        const rows = await this.db.all(`SELECT * FROM shoplist`)
+
+    async getShopLists(): Promise<ShopList[]> {
+        const rows = await this.db.all('SELECT * FROM shoplist');
         return rows.map((row) => ({
-            id: row.id, 
-            name: row.name, 
-            createdAt: new Date(row.created_at + 'Z')}))
+            id: row.id,
+            name: row.name,
+            createdAt: new Date(row.created_at + 'Z'),
+        }));
     }
+
+    async getShopList(listId: number): Promise<ShopList> {
+        const row = await this.db.get(
+            'SELECT * FROM shoplist WHERE id=?',
+            listId
+        );
+        return {
+            id: row.id,
+            name: row.name,
+            createdAt: new Date(row.created_at + 'Z'),
+        };
+    }
+
     async getListItems(listId: number): Promise<ShopListItem[]> {
-        const rows = await this.db.all(`SELECT * FROM shoplist_item WHERE list_id=?`, listId)
+        const rows = await this.db.all(
+            'SELECT * FROM shoplist_item WHERE list_id=?',
+            listId
+        );
         return rows.map((row) => ({
             listId: row.list_id,
             sequence: row.sequence,
             text: row.item,
             done: row.done ? true : false,
-        }))
+        }));
     }
 }
 
-
-
-async function main() {
-    const db = await getDatabase()
-    const listId = await db.createShopList("Testilista")
-    console.log(listId)
-    await db.addItemToList(listId, 'eka rivi')
-    await db.addItemToList(listId, 'toka rivi')
-    await db.addItemToList(listId, 'kolmas rivi')
-    console.log(await db.getShopLists())
-    const listat = await db.getShopLists()
-    console.log(`${listat[0].createdAt}`)
-
-    const ekanListanIteemit = await db.getListItems(listat[0].id)
-    console.log(ekanListanIteemit)
+async function kokeile() {
+    const db = await getDatabase();
+    const listaId = await db.createShopList('Testilista');
+    console.log(listaId);
+    await db.addItemToList(listaId, 'eka rivi');
+    await db.addItemToList(listaId, 'toka rivi');
+    await db.addItemToList(listaId, 'kolmas rivi');
+    const listat = await db.getShopLists();
+    console.log(`${listat[0].createdAt}`);
+    const ekanListanIteemit = await db.getListItems(listat[0].id);
+    console.log(ekanListanIteemit);
 }
 
-main()
+// kokeile();
