@@ -5,8 +5,8 @@ export type ShopListData = {
 };
 
 export type ShopList = ShopListData & {
-    id: number
-}
+    id: number;
+};
 
 export type ShopListItem = {
     listId: number;
