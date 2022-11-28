@@ -15,7 +15,7 @@ export default function NavigationBar() {
                             Etusivu
                         </Nav.Link>
                         <Nav.Link as={Link} href="/joku/sivu">
-                            Joku sivu
+                            Listat
                         </Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
